@@ -15,25 +15,35 @@ test('Supersport - matematička provjera dobitka (2 para)', async ({ page }) => 
 
   await page.waitForTimeout(1000);
 
-  await page.waitForSelector('td[class*="table-outcomes-module_outcome"]');
+  await page.waitForSelector('tr[data-id="TableRow"]');
 
-  const oddsCells = page.locator('td[class*="table-outcomes-module_outcome"]');
-  const count = await oddsCells.count();
+  const rows = page.locator('tr[data-id="TableRow"]');
+  const rowCount = await rows.count();
 
-  expect(count).toBeGreaterThan(1);
+  expect(rowCount).toBeGreaterThan(1);
 
-  const firstIndex = Math.floor(Math.random() * count);
-  let secondIndex = Math.floor(Math.random() * count);
+  const firstRowIndex = Math.floor(Math.random() * rowCount);
+  let secondRowIndex = Math.floor(Math.random() * rowCount);
 
-  while (secondIndex === firstIndex) {
-    secondIndex = Math.floor(Math.random() * count);
+  while (secondRowIndex === firstRowIndex) {
+    secondRowIndex = Math.floor(Math.random() * rowCount);
   }
 
-  await oddsCells.nth(firstIndex).click();
-  await oddsCells.nth(secondIndex).click();
+  const firstRowOdds = rows
+    .nth(firstRowIndex)
+    .locator('td[class*="table-outcomes-module_outcome"]');
+
+  const secondRowOdds = rows
+    .nth(secondRowIndex)
+    .locator('td[class*="table-outcomes-module_outcome"]');
+
+  const firstOddIndex = Math.floor(Math.random() * await firstRowOdds.count());
+  const secondOddIndex = Math.floor(Math.random() * await secondRowOdds.count());
+
+  await firstRowOdds.nth(firstOddIndex).click();
+  await secondRowOdds.nth(secondOddIndex).click();
 
   const slipOddsLocator = page.locator('div[class*="OddInfo-module_odd-info"] span');
-
   await expect(slipOddsLocator).toHaveCount(2);
 
   const odd1 = parseFloat(
@@ -71,8 +81,8 @@ test('Supersport - matematička provjera dobitka (2 para)', async ({ page }) => 
 
   console.log("Prikazana isplata:", displayedWin);
 
-  const manipulationFeeRate = 0.05; // 5%
-  const taxRate = 0.10;             // 10%
+  const manipulationFeeRate = 0.05;
+  const taxRate = 0.10;
 
   const netStake = stake - (stake * manipulationFeeRate);
   const grossWin = netStake * combinedOdd;
